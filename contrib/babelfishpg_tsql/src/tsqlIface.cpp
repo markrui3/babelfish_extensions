@@ -122,14 +122,15 @@ std::string extractIndexValues(std::vector<TSqlParser::Index_valueContext *> ind
 static void *makeBatch(TSqlParser::Tsql_fileContext *ctx, tsqlBuilder &builder);
 //static void *makeBatch(TSqlParser::Block_statementContext *ctx, tsqlBuilder &builder);
 
-static void process_execsql_destination(TSqlParser::Dml_statementContext *ctx, PLtsql_stmt_execsql *stmt);
-static void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext *ctx, PLtsql_stmt_execsql *stmt);
-static bool post_process_create_table(TSqlParser::Create_tableContext *ctx, PLtsql_stmt_execsql *stmt, TSqlParser::Ddl_statementContext *baseCtx);
+static void process_execsql_destination(TSqlParser::Dml_statementContext *ctx, PLtsql_stmt_execsql *stmt, PLtsql_expr_query_mutator *mutator);
+static void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext *ctx, PLtsql_stmt_execsql *stmt, PLtsql_expr_query_mutator *mutator);
+static bool post_process_create_table(TSqlParser::Create_tableContext *ctx, PLtsql_stmt_execsql *stmt, TSqlParser::Ddl_statementContext *baseCtx, PLtsql_expr_query_mutator *mutator);
 static bool post_process_alter_table(TSqlParser::Alter_tableContext *ctx, PLtsql_stmt_execsql *stmt, TSqlParser::Ddl_statementContext *baseCtx);
 static bool post_process_create_index(TSqlParser::Create_indexContext *ctx, PLtsql_stmt_execsql *stmt, TSqlParser::Ddl_statementContext *baseCtx);
 static bool post_process_create_database(TSqlParser::Create_databaseContext *ctx, PLtsql_stmt_execsql *stmt, TSqlParser::Ddl_statementContext *baseCtx);
 static bool post_process_create_type(TSqlParser::Create_typeContext *ctx, PLtsql_stmt_execsql *stmt, TSqlParser::Ddl_statementContext *baseCtx);
 static void post_process_table_source(TSqlParser::Table_source_itemContext *ctx, PLtsql_expr *expr, ParserRuleContext *baseCtx);
+static void rds_post_process_table_source(TSqlParser::Table_source_itemContext *ctx, PLtsql_expr *expr, ParserRuleContext *baseCtx, PLtsql_expr_query_mutator *mutator);
 static void post_process_declare_cursor_statement(PLtsql_stmt_decl_cursor *stmt, TSqlParser::Declare_cursorContext *ctx, tsqlBuilder &builder);
 static void post_process_declare_table_statement(PLtsql_stmt_decl_table *stmt, TSqlParser::Table_type_definitionContext *ctx);
 static PLtsql_var *lookup_cursor_variable(const char *varname);
@@ -1395,9 +1396,9 @@ public:
 		Assert(stmt);
 		Assert(stmt->sqlstmt = statementMutator->expr);
 
-		process_execsql_destination(ctx, stmt);
+		process_execsql_destination(ctx, stmt, statementMutator.get());
 
-		process_execsql_remove_unsupported_tokens(ctx, stmt); // in-place query string modification. no mutator necessary
+		process_execsql_remove_unsupported_tokens(ctx, stmt, statementMutator.get()); // in-place query string modification. no mutator necessary
 
 		// record whether the stmt is an INSERT-EXEC stmt
 		stmt->insert_exec =
@@ -1502,15 +1503,15 @@ public:
 
 		bool nop = false;
 		if (ctx->create_table())
-			nop = post_process_create_table(ctx->create_table(), stmt, ctx);
+			nop = post_process_create_table(ctx->create_table(), stmt, ctx, statementMutator.get());
 		else if (ctx->alter_table())
-			nop = post_process_alter_table(ctx->alter_table(), stmt, ctx);
+			nop = post_process_alter_table(ctx->alter_table(), stmt, ctx, statementMutator.get());
 		else if (ctx->create_index())
-			nop = post_process_create_index(ctx->create_index(), stmt, ctx);
+			nop = post_process_create_index(ctx->create_index(), stmt, ctx, statementMutator.get());
 		else if (ctx->create_database())
-			nop = post_process_create_database(ctx->create_database(), stmt, ctx);
+			nop = post_process_create_database(ctx->create_database(), stmt, ctx, statementMutator.get());
 		else if (ctx->create_type())
-			nop = post_process_create_type(ctx->create_type(), stmt, ctx);
+			nop = post_process_create_type(ctx->create_type(), stmt, ctx, statementMutator.get());
 		else if (ctx->create_fulltext_index() ||
 		         ctx->alter_fulltext_index() ||
 		         ctx->drop_fulltext_index())
@@ -2169,7 +2170,7 @@ static void process_query_specification(
 	if (qctx->table_sources())
 	{
 		for (auto tctx : qctx->table_sources()->table_source_item()) // from-clause (to remove hints)
-			post_process_table_source(tctx, expr, baseCtx);
+			rds_post_process_table_source(tctx, expr, baseCtx, mutator);
 	}
 
 	/* handle special alias syntax and quote alias */
@@ -3159,6 +3160,8 @@ makeTsqlExpr(const std::string &fragment, bool addSelect)
 	else
 		result->query = pstrdup(fragment.c_str());
 	
+	// std::u32string u32query = utf8_to_utf32(result->query);
+	// result->u32query = &u32query;
     result->plan     = NULL;
     result->paramnos = NULL;
     result->rwparam  = -1;
@@ -3197,9 +3200,11 @@ void replaceTokenStringFromQuery(PLtsql_expr* expr, Token* startToken, Token* en
 
 	Assert(expr->query);
 	memset(expr->query + startIdx - baseIdx, ' ', endIdx - startIdx + 1);
+	// (*static_cast<std::u32string *>(expr->u32query)).replace(startIdx - baseIdx, endIdx - startIdx + 1, endIdx - startIdx + 1, ' ');
 
 	if (repl)
 		memcpy(expr->query + startIdx - baseIdx, repl, strlen(repl));
+		// (*static_cast<std::u32string *>(expr->u32query)).replace(startIdx - baseIdx, strlen(repl), utf8_to_utf32(repl));
 }
 
 void replaceTokenStringFromQuery(PLtsql_expr* expr, TerminalNode* tokenNode, const char * repl, ParserRuleContext *baseCtx)
@@ -4842,7 +4847,7 @@ void add_assignment_target_field(PLtsql_row *target, antlr4::tree::TerminalNode 
 			throw PGErrorWrapperException(ERROR, ERRCODE_SYNTAX_ERROR, format_errmsg("Babelfish does not support assignment to the same variable in SELECT. variable name: \"%s\"", targetText.c_str()), getLineAndPos(localId));
 }
 
-void process_execsql_destination_select(TSqlParser::Select_statement_standaloneContext* ctx, PLtsql_stmt_execsql *stmt)
+void process_execsql_destination_select(TSqlParser::Select_statement_standaloneContext* ctx, PLtsql_stmt_execsql *stmt, PLtsql_expr_query_mutator *mutator)
 {
 	TSqlParser::Query_specificationContext *qctx = get_query_specification(ctx->select_statement());
 	Assert(qctx);
@@ -4876,8 +4881,10 @@ void process_execsql_destination_select(TSqlParser::Select_statement_standaloneC
 			{
 				// in PG main parser, '@a=1' will be treaed as a boolean expression to compare @a and 1. This is different T-SQL expected.
 				// We'll remove '@a=' from the query string so that main parser will return the expected result.
-				removeTokenStringFromQuery(stmt->sqlstmt, elem->LOCAL_ID(), ctx);
-				removeTokenStringFromQuery(stmt->sqlstmt, elem->EQUAL(), ctx);
+				// removeTokenStringFromQuery(stmt->sqlstmt, elem->LOCAL_ID(), ctx);
+				mutator->add(elem->LOCAL_ID()->getSymbol()->getStartIndex(), ::getFullText(elem->LOCAL_ID()), std::string());
+				// removeTokenStringFromQuery(stmt->sqlstmt, elem->EQUAL(), ctx);
+				mutator->add(elem->EQUAL()->getSymbol()->getStartIndex(), ::getFullText(elem->EQUAL()), std::string());
 			}
 			else
 			{
@@ -4904,7 +4911,8 @@ void process_execsql_destination_select(TSqlParser::Select_statement_standaloneC
 				else
 					Assert(0);
 
-				replaceTokenStringFromQuery(stmt->sqlstmt, anode, rewrite_assign_operator(anode), ctx);
+				// replaceTokenStringFromQuery(stmt->sqlstmt, anode, rewrite_assign_operator(anode), ctx);
+				mutator->add(anode->getSymbol()->getStartIndex(), ::getFullText(anode), std::string(rewrite_assign_operator(anode)));
 			}
 		}
 		else
@@ -4925,7 +4933,7 @@ void process_execsql_destination_select(TSqlParser::Select_statement_standaloneC
 		stmt->need_to_push_result = true;
 }
 
-void process_execsql_destination_update(TSqlParser::Update_statementContext *uctx, PLtsql_stmt_execsql *stmt)
+void process_execsql_destination_update(TSqlParser::Update_statementContext *uctx, PLtsql_stmt_execsql *stmt, PLtsql_expr_query_mutator *mutator)
 {
 	/*
 	 * If UPDATE statement has SET to local varialbe, we will rewrite a query with RETURNING and set destination
@@ -5017,18 +5025,18 @@ void process_execsql_destination_update(TSqlParser::Update_statementContext *uct
 	}
 }
 
-void process_execsql_destination(TSqlParser::Dml_statementContext *ctx, PLtsql_stmt_execsql *stmt)
+void process_execsql_destination(TSqlParser::Dml_statementContext *ctx, PLtsql_stmt_execsql *stmt, PLtsql_expr_query_mutator *mutator)
 {
 	Assert(ctx);
 	Assert(stmt);
 
 	if (ctx->select_statement_standalone())
 	{
-		process_execsql_destination_select(ctx->select_statement_standalone(), stmt);
+		process_execsql_destination_select(ctx->select_statement_standalone(), stmt, mutator);
 	}
 	else if (ctx->update_statement())
 	{
-		process_execsql_destination_update(ctx->update_statement(), stmt);
+		process_execsql_destination_update(ctx->update_statement(), stmt, mutator);
 	}
 }
 
@@ -5061,7 +5069,7 @@ static void post_process_table_source(TSqlParser::Table_source_itemContext *ctx,
 			removeCtxStringFromQuery(expr, actx->table_alias()->with_table_hints(), baseCtx);
 		}
 	}
-	
+
 	if (!table_name.empty())
 	{
 		if (table_to_alias_mapping.find(table_name) != table_to_alias_mapping.end())
@@ -5083,7 +5091,61 @@ static void post_process_table_source(TSqlParser::Table_source_itemContext *ctx,
 	}
 }
 
-void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext *ctx, PLtsql_stmt_execsql *stmt)
+static void rds_post_process_table_source(TSqlParser::Table_source_itemContext *ctx, PLtsql_expr *expr, ParserRuleContext *baseCtx, PLtsql_expr_query_mutator *mutator)
+{
+	for (auto cctx : ctx->table_source_item())
+		rds_post_process_table_source(cctx, expr, baseCtx, mutator);
+
+	std::string table_name = extractTableName(nullptr, ctx);
+
+	for (auto wctx : ctx->with_table_hints())
+	{
+		if (!wctx->sample_clause())
+			extractTableHints(wctx, table_name);
+		// removeCtxStringFromQuery(expr, wctx, baseCtx);
+		mutator->add(wctx->getStart()->getStartIndex(), ::getFullText(wctx), std::string());
+	}
+
+	for (auto actx : ctx->as_table_alias())
+	{
+		std::string alias_name = ::getFullText(actx->table_alias()->id());
+		if (!table_name.empty() && !alias_name.empty())
+		{
+			alias_to_table_mapping[alias_name] = table_name;
+			table_to_alias_mapping[table_name] = alias_name;
+		}
+		if (actx->table_alias()->with_table_hints())
+		{
+			if (!actx->table_alias()->with_table_hints()->sample_clause())
+				extractTableHints(actx->table_alias()->with_table_hints(), alias_name);
+			// removeCtxStringFromQuery(expr, actx->table_alias()->with_table_hints(), baseCtx);
+			mutator->add(actx->table_alias()->with_table_hints()->getStart()->getStartIndex(), ::getFullText(actx->table_alias()->with_table_hints()), std::string());
+		}
+	}
+	
+	if (!table_name.empty())
+	{
+		if (table_to_alias_mapping.find(table_name) != table_to_alias_mapping.end())
+			table_name = table_to_alias_mapping[table_name];
+		num_of_tables++;
+		if (!table_names.empty())
+			table_names += " ";
+		table_names += table_name;
+	}
+
+	if (ctx->join_hint())
+	{
+		if (enable_hint_mapping && num_of_tables > 1)
+		{
+			leading_hint = "Leading(" + table_names + ")";
+			extractJoinHint(ctx->join_hint(), table_names);
+		}
+		// removeCtxStringFromQuery(expr, ctx->join_hint(), baseCtx);
+		mutator->add(ctx->join_hint()->getStart()->getStartIndex(), ::getFullText(ctx->join_hint()), std::string());
+	}
+}
+
+void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext *ctx, PLtsql_stmt_execsql *stmt, PLtsql_expr_query_mutator *mutator)
 {
 	if (ctx->insert_statement())
 	{
@@ -5095,11 +5157,13 @@ void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext 
 				std::string table_name = extractTableName(ictx->ddl_object(), nullptr);
 				extractTableHints(ictx->with_table_hints(), table_name);
 			}
-			removeCtxStringFromQuery(stmt->sqlstmt, ictx->with_table_hints(), ctx);
+			// removeCtxStringFromQuery(stmt->sqlstmt, ictx->with_table_hints(), ctx);
+			mutator->add(ictx->with_table_hints()->getStart()->getStartIndex(), ::getFullText(ictx->with_table_hints()), std::string());
 		}
 		if (ictx->option_clause()) // query hints
 		{
-			removeCtxStringFromQuery(stmt->sqlstmt, ictx->option_clause(), ctx);
+			// removeCtxStringFromQuery(stmt->sqlstmt, ictx->option_clause(), ctx);
+			mutator->add(ictx->option_clause()->getStart()->getStartIndex(), ::getFullText(ictx->option_clause()), std::string());
 			extractQueryHintsFromOptionClause(ictx->option_clause());
 		}
 	}
@@ -5108,7 +5172,7 @@ void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext 
 		auto uctx = ctx->update_statement();
 		if (uctx->table_sources())
 			for (auto tctx : uctx->table_sources()->table_source_item()) // from-clause (to remove hints)
-				post_process_table_source(tctx, stmt->sqlstmt, ctx);
+				rds_post_process_table_source(tctx, stmt->sqlstmt, ctx, mutator);
 		if (uctx->with_table_hints()) // table hints
 		{
 			if (!uctx->with_table_hints()->sample_clause() && uctx->ddl_object())
@@ -5116,11 +5180,13 @@ void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext 
 				std::string table_name = extractTableName(uctx->ddl_object(), nullptr);
 				extractTableHints(uctx->with_table_hints(), table_name);
 			}
-			removeCtxStringFromQuery(stmt->sqlstmt, uctx->with_table_hints(), ctx);
+			// removeCtxStringFromQuery(stmt->sqlstmt, uctx->with_table_hints(), ctx);
+			mutator->add(uctx->with_table_hints()->getStart()->getStartIndex(), ::getFullText(uctx->with_table_hints()), std::string());
 		}
 		if (uctx->option_clause()) // query hints
 		{
-			removeCtxStringFromQuery(stmt->sqlstmt, uctx->option_clause(), ctx);
+			// removeCtxStringFromQuery(stmt->sqlstmt, uctx->option_clause(), ctx);
+			mutator->add(uctx->option_clause()->getStart()->getStartIndex(), ::getFullText(uctx->option_clause()), std::string());
 			extractQueryHintsFromOptionClause(uctx->option_clause());
 		}
 	}
@@ -5130,7 +5196,7 @@ void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext 
 		if (dctx->table_sources())
 		{
 			for (auto tctx : dctx->table_sources()->table_source_item()) // from-clause (to remove hints)
-				post_process_table_source(tctx, stmt->sqlstmt, ctx);
+				rds_post_process_table_source(tctx, stmt->sqlstmt, ctx, mutator);
 		}
 		if (dctx->delete_statement_from()->table_alias() && dctx->delete_statement_from()->table_alias()->with_table_hints())
 		{
@@ -5139,7 +5205,8 @@ void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext 
 				std::string table_name = ::getFullText(dctx->delete_statement_from()->table_alias()->id());
 				extractTableHints(dctx->delete_statement_from()->table_alias()->with_table_hints(), table_name);
 			}
-			removeCtxStringFromQuery(stmt->sqlstmt, dctx->delete_statement_from()->table_alias()->with_table_hints(), ctx);
+			// removeCtxStringFromQuery(stmt->sqlstmt, dctx->delete_statement_from()->table_alias()->with_table_hints(), ctx);
+			mutator->add(dctx->delete_statement_from()->table_alias()->with_table_hints()->getStart()->getStartIndex(), ::getFullText(dctx->delete_statement_from()->table_alias()->with_table_hints()), std::string());
 		}
 		if (dctx->with_table_hints()) // table hints
 		{
@@ -5148,11 +5215,13 @@ void process_execsql_remove_unsupported_tokens(TSqlParser::Dml_statementContext 
 				std::string table_name = extractTableName(dctx->delete_statement_from()->ddl_object(), nullptr);
 				extractTableHints(dctx->with_table_hints(), table_name);
 			}
-			removeCtxStringFromQuery(stmt->sqlstmt, dctx->with_table_hints(), ctx);
+			// removeCtxStringFromQuery(stmt->sqlstmt, dctx->with_table_hints(), ctx);
+			mutator->add(dctx->with_table_hints()->getStart()->getStartIndex(), ::getFullText(dctx->with_table_hints()), std::string());
 		}
 		if (dctx->option_clause()) // query hints
 		{
-			removeCtxStringFromQuery(stmt->sqlstmt, dctx->option_clause(), ctx);
+			// removeCtxStringFromQuery(stmt->sqlstmt, dctx->option_clause(), ctx);
+			mutator->add(dctx->option_clause()->getStart()->getStartIndex(), ::getFullText(dctx->option_clause()), std::string());
 			extractQueryHintsFromOptionClause(dctx->option_clause());
 		}
 	}
@@ -5271,7 +5340,7 @@ post_process_table_constraint(TSqlParser::Table_constraintContext *ctx, PLtsql_s
 }
 
 static bool
-post_process_create_table(TSqlParser::Create_tableContext *ctx, PLtsql_stmt_execsql *stmt, TSqlParser::Ddl_statementContext *baseCtx)
+post_process_create_table(TSqlParser::Create_tableContext *ctx, PLtsql_stmt_execsql *stmt, TSqlParser::Ddl_statementContext *baseCtx, PLtsql_expr_query_mutator *mutator)
 {
 	/*
 	 * visit subclauses and remove unsupported options by backend (assuming corresponding error is already thrown for bbf unsupported error.
@@ -5285,10 +5354,10 @@ post_process_create_table(TSqlParser::Create_tableContext *ctx, PLtsql_stmt_exec
 		for (auto cdtctx : ctx->column_def_table_constraints()->column_def_table_constraint())
 		{
 			if (cdtctx->column_definition())
-				post_process_column_definition(cdtctx->column_definition(), stmt, baseCtx);
+				post_process_column_definition(cdtctx->column_definition(), stmt, baseCtx, mutator);
 
 			if (cdtctx->table_constraint())
-				post_process_table_constraint(cdtctx->table_constraint(), stmt, baseCtx);
+				post_process_table_constraint(cdtctx->table_constraint(), stmt, baseCtx, mutator);
 		}
 	}
 
