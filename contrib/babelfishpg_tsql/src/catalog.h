@@ -293,6 +293,25 @@ extern Oid	get_bbf_domain_mapping_oid(void);
 extern Oid	get_bbf_domain_mapping_idx_oid(void);
 
 /*****************************************
+ *			EXTENDED_PROPERTIES
+ *****************************************/
+#define BBF_EXTENDED_PROPERTIES_TABLE_NAME "babelfish_extended_properties"
+#define BBF_EXTENDED_PROPERTIES_IDX_NAME "babelfish_extended_properties_pkey"
+
+#define Anum_bbf_extended_properties_dbid 1
+#define Anum_bbf_extended_properties_schema_name 2
+#define Anum_bbf_extended_properties_major_name 3
+#define Anum_bbf_extended_properties_minor_name 4
+#define Anum_bbf_extended_properties_type 5
+#define BBF_EXTENDED_PROPERTIES_NUM_COLS 7
+
+extern Oid	bbf_extended_properties_oid;
+extern Oid	bbf_extended_properties_idx_oid;
+
+extern Oid	get_bbf_extended_properties_oid(void);
+extern Oid	get_bbf_extended_properties_idx_oid(void);
+
+/*****************************************
  *			Metadata Check Rule
  *****************************************/
 

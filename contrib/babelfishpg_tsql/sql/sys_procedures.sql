@@ -271,3 +271,227 @@ GRANT EXECUTE on PROCEDURE sys.sp_babelfish_volatility(IN sys.varchar, IN sys.va
 
 CREATE OR REPLACE PROCEDURE sys.bbf_set_context_info(IN context_info sys.VARBINARY(128))
 AS 'babelfishpg_tsql' LANGUAGE C;
+
+CREATE OR REPLACE PROCEDURE sys.babelfish_exec_extendedproperty
+(
+  procedure_name text,
+  "@name" sys.sysname,
+  "@value" sys.sql_variant,
+  "@level0type" VARCHAR(128) = NULL,
+  "@level0name" sys.sysname = NULL,
+  "@level1type" VARCHAR(128) = NULL,
+  "@level1name" sys.sysname = NULL,
+  "@level2type" VARCHAR(128) = NULL,
+  "@level2name" sys.sysname = NULL
+)
+AS $$
+DECLARE
+  var_object_id INT;
+  var_user TEXT;
+  var_dbid SMALLINT;
+  var_schema_name NAME;
+  var_major_name NAME;
+  var_minor_name NAME;
+  var_type TEXT;
+  var_object_name TEXT;
+  var_object_type TEXT[];
+BEGIN
+  "@level0type" := UPPER(RTRIM("@level0type"));
+  "@level1type" := UPPER(RTRIM("@level1type"));
+  "@level2type" := UPPER(RTRIM("@level2type"));
+  "@level0name" := LOWER(RTRIM("@level0name"));
+  "@level1name" := LOWER(RTRIM("@level1name"));
+  "@level2name" := LOWER(RTRIM("@level2name"));
+  "@name" := RTRIM("@name");
+
+  var_dbid := sys.db_id();
+  var_schema_name := '';
+  var_major_name := '';
+  var_minor_name := '';
+  var_type := '';
+
+  IF "@name" IS NULL THEN
+    RAISE EXCEPTION 'An invalid parameter or option was specified for procedure ''%''.', procedure_name;
+    RETURN;
+  END IF;
+  IF ("@level0type" IS NULL AND "@level0name" IS NOT NULL) OR ("@level0type" IS NOT NULL AND "@level0name" IS NULL) THEN
+    RAISE EXCEPTION 'An invalid parameter or option was specified for procedure ''%''.', procedure_name;
+    RETURN;
+  END IF;
+  IF ("@level1type" IS NULL AND "@level1name" IS NOT NULL) OR ("@level1type" IS NOT NULL AND "@level1name" IS NULL) THEN
+    RAISE EXCEPTION 'An invalid parameter or option was specified for procedure ''%''.', procedure_name;
+    RETURN;
+  END IF;
+  IF ("@level2type" IS NULL AND "@level2name" IS NOT NULL) OR ("@level2type" IS NOT NULL AND "@level2name" IS NULL) THEN
+    RAISE EXCEPTION 'An invalid parameter or option was specified for procedure ''%''.', procedure_name;
+    RETURN;
+  END IF;
+  IF "@level1type" IS NOT NULL THEN
+    IF "@level0type" IS NULL THEN
+      RAISE EXCEPTION 'An invalid parameter or option was specified for procedure ''%''.', procedure_name;
+      RETURN;
+    END IF;
+  END IF;
+  IF "@level2type" IS NOT NULL THEN
+    IF "@level0type" IS NULL OR "@level1type" IS NULL THEN
+      RAISE EXCEPTION 'An invalid parameter or option was specified for procedure ''%''.', procedure_name;
+      RETURN;
+    END IF;
+  END IF;
+
+  -- DATABASE
+  IF "@level0type" IS NULL THEN
+    IF "@level1type" IS NOT NULL OR "@level2type" IS NOT NULL THEN
+      RAISE EXCEPTION 'An invalid parameter or option was specified for procedure ''%''.', procedure_name;
+      RETURN;
+    END IF;
+
+    var_type := 'DATABASE';
+  END IF;
+
+  -- SCHEMA or object in SCHEMA
+  IF "@level0type" IN ('SCHEMA') THEN
+    IF "@level1type" IS NOT NULL AND "@level1type" NOT IN ('TABLE', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION', 'TYPE') THEN
+      RAISE EXCEPTION 'Extended properties for object type % are not currently supported by Babelfish.', "@level1type";
+      RETURN;
+    END IF;
+    IF "@level2type" IS NOT NULL THEN
+      IF NOT ("@level1type" IN ('TABLE') AND "@level2type" IN ('COLUMN')) THEN
+        RAISE EXCEPTION 'Extended properties for object type % are not currently supported by Babelfish.', "@level2type";
+        RETURN;
+      END IF;
+    END IF;
+
+    -- validate SCHEMA
+    var_object_name := "@level0name";
+    var_schema_name := var_object_name;
+    IF sys.schema_id(var_object_name::sys.sysname) IS NULL THEN
+      RAISE EXCEPTION 'Object is invalid. Extended properties are not permitted on ''%'', or the object does not exist.', coalesce(var_object_name, 'object specified');
+      RETURN;
+    END IF;
+
+    -- SCHEMA
+    IF "@level1type" IS NULL THEN
+      var_type := 'SCHEMA';
+      var_major_name := var_schema_name;
+
+    -- object in SCHEMA
+    ELSE
+      var_major_name := "@level1name";
+
+      -- validate object in SCHEMA
+      var_object_name := var_schema_name || '.' || var_major_name;
+      IF "@level1type" = 'TABLE' THEN
+        var_object_type := ARRAY['IT', 'S', 'U'];
+      ELSIF "@level1type" = 'VIEW' THEN
+        var_object_type := ARRAY['V'];
+      ELSIF "@level1type" = 'SEQUENCE' THEN
+        var_object_type := ARRAY['SO'];
+      ELSIF "@level1type" = 'PROCEDURE' THEN
+        var_object_type := ARRAY['P', 'PC', 'RF', 'X'];
+      ELSIF "@level1type" = 'FUNCTION' THEN
+        var_object_type := ARRAY['AF', 'FN', 'FS', 'FT', 'IF', 'TF'];
+      ELSIF "@level1type" = 'TYPE' THEN
+        var_object_type := ARRAY['TT'];
+      END IF;
+      var_object_id := sys.object_id(var_object_name);
+      IF var_object_id IS NULL OR NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = var_object_id AND type = ANY(var_object_type)) THEN
+        RAISE EXCEPTION 'Object is invalid. Extended properties are not permitted on ''%'', or the object does not exist.', coalesce(var_object_name, 'object specified');
+        RETURN;
+      END IF;
+
+      IF "@level2type" IS NULL THEN
+        var_type := "@level1type";
+      ELSE
+        var_type := "@level1type" || ' ' || "@level2type";
+        var_minor_name := "@level2name";
+        var_object_name := var_schema_name || '.' || var_major_name || '.' || var_minor_name;
+        IF "@level1type" IN ('TABLE') AND "@level2type" IN ('COLUMN') AND NOT EXISTS (SELECT * FROM pg_attribute WHERE attrelid = var_object_id AND attname = var_minor_name COLLATE "C") THEN
+          RAISE EXCEPTION 'Object is invalid. Extended properties are not permitted on ''%'', or the object does not exist.', coalesce(var_object_name, 'object specified');
+          RETURN;
+        END IF;
+      END IF;
+    END IF;
+  END IF;
+
+  SELECT current_user INTO var_user;
+  PERFORM sys.babelfish_set_role('sysadmin');
+
+  procedure_name = LOWER(procedure_name);
+  IF NOT EXISTS (SELECT * FROM sys.babelfish_extended_properties WHERE dbid = var_dbid AND schema_name = var_schema_name COLLATE "C" AND major_name = var_major_name COLLATE "C" AND minor_name = var_minor_name COLLATE "C" AND type = var_type COLLATE "C" AND name = "@name") THEN
+    IF procedure_name = 'sp_updateextendedproperty' OR procedure_name = 'sp_dropextendedproperty' THEN
+      RAISE EXCEPTION 'Property cannot be updated or deleted. Property ''%'' does not exist for ''%''.', "@name", coalesce(var_object_name, 'object specified');
+      RETURN;
+    END IF;
+  ELSE
+    IF procedure_name = 'sp_addextendedproperty' THEN
+      RAISE EXCEPTION 'Property cannot be added. Property ''%'' already exists for ''%''.', "@name", coalesce(var_object_name, 'object specified');
+    END IF;
+  END IF;
+
+  IF procedure_name = 'sp_addextendedproperty' THEN
+    INSERT INTO sys.babelfish_extended_properties(dbid, schema_name, major_name, minor_name, type, name, value) VALUES(var_dbid, var_schema_name, var_major_name, var_minor_name, var_type, "@name", "@value");
+  ELSIF procedure_name = 'sp_updateextendedproperty' THEN
+    UPDATE sys.babelfish_extended_properties SET value = "@value" WHERE dbid = var_dbid AND schema_name = var_schema_name COLLATE "C" AND major_name = var_major_name COLLATE "C" AND minor_name = var_minor_name COLLATE "C" AND type = var_type COLLATE "C" AND name = "@name";
+  ELSIF procedure_name = 'sp_dropextendedproperty' THEN
+    DELETE FROM sys.babelfish_extended_properties WHERE dbid = var_dbid AND schema_name = var_schema_name COLLATE "C" AND major_name = var_major_name COLLATE "C" AND minor_name = var_minor_name COLLATE "C" AND type = var_type COLLATE "C" AND name = "@name";
+  END IF;
+
+  PERFORM sys.babelfish_set_role(var_user);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE sys.sp_addextendedproperty
+(
+  "@name" sys.sysname,
+  "@value" sys.sql_variant = NULL,
+  "@level0type" VARCHAR(128) = NULL,
+  "@level0name" sys.sysname = NULL,
+  "@level1type" VARCHAR(128) = NULL,
+  "@level1name" sys.sysname = NULL,
+  "@level2type" VARCHAR(128) = NULL,
+  "@level2name" sys.sysname = NULL
+)
+AS $$
+BEGIN
+  CALL sys.babelfish_exec_extendedproperty('sp_addextendedproperty', "@name", "@value", "@level0type", "@level0name", "@level1type", "@level1name", "@level2type", "@level2name");
+END;
+$$ LANGUAGE plpgsql;
+GRANT EXECUTE ON PROCEDURE sys.sp_addextendedproperty TO PUBLIC;
+
+CREATE OR REPLACE PROCEDURE sys.sp_updateextendedproperty
+(
+  "@name" sys.sysname,
+  "@value" sys.sql_variant = NULL,
+  "@level0type" VARCHAR(128) = NULL,
+  "@level0name" sys.sysname = NULL,
+  "@level1type" VARCHAR(128) = NULL,
+  "@level1name" sys.sysname = NULL,
+  "@level2type" VARCHAR(128) = NULL,
+  "@level2name" sys.sysname = NULL
+)
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+  CALL sys.babelfish_exec_extendedproperty('sp_updateextendedproperty', "@name", "@value", "@level0type", "@level0name", "@level1type", "@level1name", "@level2type", "@level2name");
+END;
+$$;
+GRANT EXECUTE ON PROCEDURE sys.sp_updateextendedproperty TO PUBLIC;
+
+CREATE OR REPLACE PROCEDURE sys.sp_dropextendedproperty
+(
+  "@name" sys.sysname,
+  "@level0type" VARCHAR(128) = NULL,
+  "@level0name" sys.sysname = NULL,
+  "@level1type" VARCHAR(128) = NULL,
+  "@level1name" sys.sysname = NULL,
+  "@level2type" VARCHAR(128) = NULL,
+  "@level2name" sys.sysname = NULL
+)
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+  CALL sys.babelfish_exec_extendedproperty('sp_dropextendedproperty', "@name", NULL, "@level0type", "@level0name", "@level1type", "@level1name", "@level2type", "@level2name");
+END;
+$$;
+GRANT EXECUTE ON PROCEDURE sys.sp_dropextendedproperty TO PUBLIC;

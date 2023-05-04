@@ -201,6 +201,8 @@ BEGIN
 
   -- let sysadmin only to update babelfish_domain_mapping
   GRANT ALL ON TABLE sys.babelfish_domain_mapping TO sysadmin;
+
+  GRANT ALL ON TABLE sys.babelfish_extended_properties TO sysadmin;
 END
 $$;
 
@@ -612,3 +614,15 @@ GRANT EXECUTE ON PROCEDURE sys.babelfish_remove_domain_mapping_entry TO PUBLIC;
 CREATE OR REPLACE PROCEDURE sys.babelfish_truncate_domain_mapping_table()
   AS 'babelfishpg_tsql', 'babelfish_truncate_domain_mapping_table_internal' LANGUAGE C;
 GRANT EXECUTE ON PROCEDURE sys.babelfish_truncate_domain_mapping_table TO PUBLIC;
+
+CREATE TABLE sys.babelfish_extended_properties (
+  dbid smallint NOT NULL,
+  schema_name name NOT NULL,
+  major_name name NOT NULL,
+  minor_name name NOT NULL,
+  type text NOT NULL COLLATE "C",
+  name sys.sysname NOT NULL,
+  value sys.sql_variant,
+  PRIMARY KEY (dbid, schema_name, major_name, minor_name, type, name)
+);
+GRANT SELECT ON sys.babelfish_extended_properties TO PUBLIC;
