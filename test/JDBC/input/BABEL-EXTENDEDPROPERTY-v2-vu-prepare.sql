@@ -79,10 +79,6 @@ BEGIN
 END
 GO
 
-CREATE VIEW babel_babelfish_get_extended_properties_view AS
-SELECT * FROM sys.babelfish_get_extended_properties()
-GO
-
 CREATE VIEW babel_extended_properties_view AS
 SELECT class, class_desc, IIF(major_id > 0, 1, 0) AS major_id, minor_id, name, value FROM sys.extended_properties
 GO

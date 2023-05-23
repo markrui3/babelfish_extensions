@@ -395,7 +395,7 @@ BEGIN
         var_object_type := ARRAY['TT'];
       END IF;
       var_object_id := sys.object_id(var_object_name);
-      IF var_object_id IS NULL OR NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = var_object_id AND type = ANY(var_object_type)) THEN
+      IF var_object_id IS NULL THEN
         RAISE EXCEPTION 'Object is invalid. Extended properties are not permitted on ''%'', or the object does not exist.', coalesce(var_object_name, 'object specified');
         RETURN;
       END IF;

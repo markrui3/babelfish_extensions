@@ -620,7 +620,7 @@ CREATE TABLE sys.babelfish_extended_properties (
   schema_name name NOT NULL,
   major_name name NOT NULL,
   minor_name name NOT NULL,
-  type text NOT NULL COLLATE "C",
+  type sys.varchar(50) NOT NULL,
   name sys.sysname NOT NULL,
   value sys.sql_variant,
   PRIMARY KEY (dbid, schema_name, major_name, minor_name, type, name)

@@ -35,9 +35,6 @@ GO
 SELECT * FROM babel_fn_listextendedproperty(NULL)
 GO
 
-SELECT * FROM babel_babelfish_get_extended_properties_view ORDER BY class, class_desc, major_id, minor_id, name
-GO
-
 -- database
 EXEC babel_extended_properties_proc
 GO

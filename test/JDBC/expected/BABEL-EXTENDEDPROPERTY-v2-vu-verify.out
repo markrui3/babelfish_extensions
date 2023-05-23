@@ -71,13 +71,6 @@ GO
 ~~ERROR (Message: function babel_fn_listextendedproperty expects parameter "@level0type", which was not supplied.)~~
 
 
-SELECT * FROM babel_babelfish_get_extended_properties_view ORDER BY class, class_desc, major_id, minor_id, name
-GO
-~~START~~
-tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
-~~END~~
-
-
 -- database
 EXEC babel_extended_properties_proc
 GO
@@ -121,7 +114,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 before
 1#!##!##!##!#DATABASE#!#database property2#!#database property2 before
 ~~END~~
@@ -154,7 +147,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!##!##!##!#DATABASE#!#database property2#!#database property2 after
 ~~END~~
@@ -182,7 +175,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 ~~END~~
 
@@ -266,7 +259,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 before
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -307,7 +300,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -343,7 +336,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -443,7 +436,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -490,7 +483,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -532,7 +525,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -647,7 +640,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -698,7 +691,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -745,7 +738,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -865,7 +858,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -924,7 +917,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -978,7 +971,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -1105,7 +1098,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -1170,7 +1163,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -1230,7 +1223,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property1#!#schema property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_schema1#!##!#SCHEMA#!#schema property2#!#schema property2 before
@@ -1374,7 +1367,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_proc1#!##!#PROCEDURE#!#procedure property1#!#procedure property1 before
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_proc1#!##!#PROCEDURE#!#procedure property2#!#procedure property2 before
@@ -1445,7 +1438,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_proc1#!##!#PROCEDURE#!#procedure property1#!#procedure property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_proc1#!##!#PROCEDURE#!#procedure property2#!#procedure property2 before
@@ -1511,7 +1504,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_proc1#!##!#PROCEDURE#!#procedure property1#!#procedure property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_proc1#!##!#PROCEDURE#!#procedure property2#!#procedure property2 before
@@ -1664,7 +1657,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 before
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -1741,7 +1734,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -1813,7 +1806,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -1969,7 +1962,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2052,7 +2045,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2130,7 +2123,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2231,7 +2224,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2298,7 +2291,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2365,7 +2358,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2432,7 +2425,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2499,7 +2492,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2566,7 +2559,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2633,7 +2626,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2733,7 +2726,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2797,7 +2790,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2859,7 +2852,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2919,7 +2912,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -2977,7 +2970,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -3034,7 +3027,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -3088,7 +3081,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -3140,7 +3133,7 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 EXEC babel_babelfish_extended_properties_proc
 GO
 ~~START~~
-int#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 1#!##!##!##!#DATABASE#!#database property1#!#database property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property1#!#function property1 after
 1#!#babel_extended_properties_schema1#!#babel_extended_properties_func1#!##!#FUNCTION#!#function property2#!#function property2 before
@@ -3177,6 +3170,6 @@ tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
 SELECT dbid, schema_name, major_name, minor_name, type, name, value FROM sys.babelfish_extended_properties ORDER BY dbid, schema_name, major_name, minor_name, type, name;
 GO
 ~~START~~
-smallint#!#varchar#!#varchar#!#varchar#!#text#!#varchar#!#sql_variant
+smallint#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 ~~END~~
 

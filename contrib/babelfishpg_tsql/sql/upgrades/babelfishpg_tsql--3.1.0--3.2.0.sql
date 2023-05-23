@@ -2300,7 +2300,7 @@ CREATE TABLE sys.babelfish_extended_properties (
   schema_name name NOT NULL,
   major_name name NOT NULL,
   minor_name name NOT NULL,
-  type text NOT NULL COLLATE "C",
+  type sys.varchar(50) NOT NULL,
   name sys.sysname NOT NULL,
   value sys.sql_variant,
   PRIMARY KEY (dbid, schema_name, major_name, minor_name, type, name)
@@ -2308,57 +2308,36 @@ CREATE TABLE sys.babelfish_extended_properties (
 GRANT SELECT ON sys.babelfish_extended_properties TO PUBLIC;
 GRANT ALL ON TABLE sys.babelfish_extended_properties TO sysadmin;
 
-CREATE OR REPLACE FUNCTION sys.babelfish_get_extended_properties()
-RETURNS TABLE (
-  class sys.tinyint,
-  class_desc sys.nvarchar(60),
-  major_id int,
-  minor_id int,
-  name sys.sysname,
-  value sys.sql_variant
-)
-AS $$
-DECLARE
-  rec record;
-  class sys.tinyint;
-  class_desc sys.nvarchar(60);
-  major_id int;
-  minor_id int;
-BEGIN
-  FOR rec IN SELECT * FROM sys.babelfish_extended_properties WHERE dbid = sys.db_id()
-  LOOP
-    IF rec.type = 'DATABASE' THEN
-      class := 0;
-      class_desc := 'DATABASE';
-      major_id := 0;
-      minor_id := 0;
-    ELSIF rec.type = 'SCHEMA' THEN
-      class := 3;
-      class_desc := 'SCHEMA';
-      major_id := sys.schema_id(rec.schema_name::sys.sysname);
-      minor_id := 0;
-    ELSIF rec.type = 'TYPE' THEN
-      class := 6;
-      class_desc := 'TYPE';
-      major_id := sys.object_id(rec.schema_name || '.' || rec.major_name);
-      minor_id := 0;
-    ELSIF rec.type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN
-      class := 1;
-      class_desc := 'OBJECT_OR_COLUMN';
-      major_id := sys.object_id(rec.schema_name || '.' || rec.major_name);
-      minor_id := 0;
-      IF rec.type = 'TABLE COLUMN' THEN
-        SELECT attnum INTO minor_id FROM pg_attribute WHERE attrelid = major_id AND attname = rec.minor_name COLLATE "C";
-      END IF;
-    END IF;
-    RETURN QUERY SELECT class, class_desc, major_id, minor_id, rec.name AS name, rec.value as value;
-  END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
 CREATE OR REPLACE VIEW sys.extended_properties
 AS
-SELECT * FROM sys.babelfish_get_extended_properties() ORDER BY class, class_desc, major_id, minor_id, name;
+SELECT class::sys.tinyint, class_desc::sys.nvarchar(60), major_id::int,
+  CAST((CASE
+    WHEN sub.type = 'DATABASE' THEN 0
+    WHEN sub.type = 'SCHEMA' THEN 0
+    WHEN sub.type = 'TYPE' THEN 0
+    WHEN sub.type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN (CASE WHEN sub.type = 'TABLE COLUMN' THEN (SELECT attnum FROM pg_attribute WHERE attrelid = sub.major_id AND attname = sub.minor_name COLLATE "C") ELSE 0 END)
+  END) AS int) AS minor_id, name::sys.sysname, value::sys.sql_variant
+  FROM
+  (SELECT
+    (CASE
+      WHEN type = 'DATABASE' THEN 0
+      WHEN type = 'SCHEMA' THEN 3
+      WHEN type = 'TYPE' THEN 6
+      WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN 1
+    END) AS class,
+    (CASE
+      WHEN type = 'DATABASE' THEN 'DATABASE'
+      WHEN type = 'SCHEMA' THEN 'SCHEMA'
+      WHEN type = 'TYPE' THEN 'TYPE'
+      WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN 'OBJECT_OR_COLUMN'
+    END) AS class_desc,
+    (CASE
+      WHEN type = 'DATABASE' THEN 0
+      WHEN type = 'SCHEMA' THEN sys.schema_id(schema_name::sys.sysname)
+      WHEN type = 'TYPE' THEN sys.object_id(schema_name || '.' || major_name)
+      WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN sys.object_id(schema_name || '.' || major_name)
+    END) AS major_id, minor_name, name, value, type
+    FROM sys.babelfish_extended_properties WHERE dbid = sys.db_id()) sub ORDER BY class, class_desc, major_id, minor_id, name;
 GRANT SELECT ON sys.extended_properties TO PUBLIC;
 
 CALL sys.babelfish_drop_deprecated_object('table', 'sys', 'extended_properties_deprecated_in_3_2_0');
