@@ -3225,32 +3225,31 @@ LANGUAGE pltsql STABLE;
 
 CREATE OR REPLACE VIEW sys.extended_properties
 AS
-SELECT class::sys.tinyint, class_desc::sys.nvarchar(60), major_id::int,
-  CAST((CASE
-    WHEN sub.type = 'DATABASE' THEN 0
-    WHEN sub.type = 'SCHEMA' THEN 0
-    WHEN sub.type = 'TYPE' THEN 0
-    WHEN sub.type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN (CASE WHEN sub.type = 'TABLE COLUMN' THEN (SELECT attnum FROM pg_attribute WHERE attrelid = sub.major_id AND attname = sub.minor_name COLLATE "C") ELSE 0 END)
-  END) AS int) AS minor_id, name::sys.sysname, value::sys.sql_variant
-  FROM
-  (SELECT
-    (CASE
-      WHEN type = 'DATABASE' THEN 0
-      WHEN type = 'SCHEMA' THEN 3
-      WHEN type = 'TYPE' THEN 6
-      WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN 1
-    END) AS class,
-    (CASE
-      WHEN type = 'DATABASE' THEN 'DATABASE'
-      WHEN type = 'SCHEMA' THEN 'SCHEMA'
-      WHEN type = 'TYPE' THEN 'TYPE'
-      WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN 'OBJECT_OR_COLUMN'
-    END) AS class_desc,
-    (CASE
-      WHEN type = 'DATABASE' THEN 0
-      WHEN type = 'SCHEMA' THEN sys.schema_id(schema_name::sys.sysname)
-      WHEN type = 'TYPE' THEN sys.object_id(schema_name || '.' || major_name)
-      WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN sys.object_id(schema_name || '.' || major_name)
-    END) AS major_id, minor_name, name, value, type
-    FROM sys.babelfish_extended_properties WHERE dbid = sys.db_id()) sub ORDER BY class, class_desc, major_id, minor_id, name;
+SELECT
+	CAST((CASE
+		WHEN type = 'DATABASE' THEN 0
+		WHEN type = 'SCHEMA' THEN 3
+		WHEN type = 'TYPE' THEN 6
+		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN 1
+		END) AS sys.tinyint) AS class,
+	CAST((CASE
+		WHEN type = 'DATABASE' THEN 'DATABASE'
+		WHEN type = 'SCHEMA' THEN 'SCHEMA'
+		WHEN type = 'TYPE' THEN 'TYPE'
+		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN 'OBJECT_OR_COLUMN'
+	END) AS sys.nvarchar(60)) AS class_desc,
+	CAST((CASE
+		WHEN type = 'DATABASE' THEN 0
+		WHEN type = 'SCHEMA' THEN sys.schema_id(schema_name::sys.sysname)
+		WHEN type = 'TYPE' THEN sys.object_id(schema_name || '.' || major_name)
+		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN sys.object_id(schema_name || '.' || major_name)
+	END) AS int) AS major_id,
+	CAST((CASE
+		WHEN type = 'DATABASE' THEN 0
+		WHEN type = 'SCHEMA' THEN 0
+		WHEN type = 'TYPE' THEN 0
+		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN (CASE WHEN type = 'TABLE COLUMN' THEN (SELECT attnum FROM pg_attribute WHERE attrelid = sys.object_id(schema_name || '.' || major_name) AND attname = minor_name COLLATE "C") ELSE 0 END)
+	END) AS int) AS minor_id,
+	name, value
+	FROM sys.babelfish_extended_properties WHERE dbid = sys.db_id() ORDER BY class, class_desc, major_id, minor_id, name;
 GRANT SELECT ON sys.extended_properties TO PUBLIC;
