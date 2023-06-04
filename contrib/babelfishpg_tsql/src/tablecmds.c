@@ -205,8 +205,10 @@ pltsql_PreDropColumnHook(Relation rel, AttrNumber attnum)
 	ScanKeyData key[3];
 	SysScanDesc scan;
 	HeapTuple	depTup, tuple;
-	char		*physical_schema_name = NULL, *minor_name = NULL;
-	const char	*logical_schema_name = NULL, *schema_name = NULL;
+	char		*physical_schema_name = NULL,
+				*schema_name = NULL,
+				*minor_name = NULL;
+	const char	*logical_schema_name = NULL;
 
 	/* Call previous hook if exists */
 	if (prev_InvokePreDropColumnHook)
@@ -313,7 +315,7 @@ pltsql_PreDropColumnHook(Relation rel, AttrNumber attnum)
 	}
 
 	if (schema_name)
-		pfree((char *) schema_name);
+		pfree(schema_name);
 	if (minor_name)
 		pfree(minor_name);
 }

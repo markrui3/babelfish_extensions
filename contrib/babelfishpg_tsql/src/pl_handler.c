@@ -5065,8 +5065,10 @@ static void
 bbf_ExecDropStmt(DropStmt *stmt)
 {
 	int16			db_id;
-	char			*physical_schema_name = NULL, *major_name = NULL;
-	const char		*logical_schema_name = NULL, *schema_name = NULL;
+	char			*physical_schema_name = NULL,
+					*schema_name = NULL,
+					*major_name = NULL;
+	const char		*logical_schema_name = NULL;
 	ObjectAddress	address;
 	Relation		relation = NULL;
 	Oid				schema_oid;
@@ -5093,7 +5095,7 @@ bbf_ExecDropStmt(DropStmt *stmt)
 			if (schema_name)
 			{
 				delete_extended_property(2, db_id, schema_name, NULL, NULL, NULL);
-				pfree((char *) schema_name);
+				pfree(schema_name);
 			}
 		}
 	}
@@ -5145,7 +5147,7 @@ bbf_ExecDropStmt(DropStmt *stmt)
 			}
 
 			if (schema_name)
-				pfree((char *) schema_name);
+				pfree(schema_name);
 			if (major_name)
 				pfree(major_name);
 		}
@@ -5215,7 +5217,7 @@ bbf_ExecDropStmt(DropStmt *stmt)
 			}
 
 			if (schema_name)
-				pfree((char *) schema_name);
+				pfree(schema_name);
 			if (major_name)
 				pfree(major_name);
 		}

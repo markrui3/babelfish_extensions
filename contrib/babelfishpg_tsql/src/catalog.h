@@ -303,6 +303,8 @@ extern Oid	get_bbf_domain_mapping_idx_oid(void);
 #define Anum_bbf_extended_properties_major_name 3
 #define Anum_bbf_extended_properties_minor_name 4
 #define Anum_bbf_extended_properties_type 5
+#define Anum_bbf_extended_properties_name 6
+#define Anum_bbf_extended_properties_value 7
 #define BBF_EXTENDED_PROPERTIES_NUM_COLS 7
 
 extern Oid	bbf_extended_properties_oid;

@@ -73,6 +73,9 @@ PG_FUNCTION_INFO_V1(sp_dropserver_internal);
 PG_FUNCTION_INFO_V1(sp_serveroption_internal);
 PG_FUNCTION_INFO_V1(sp_babelfish_volatility);
 PG_FUNCTION_INFO_V1(sp_rename_internal);
+PG_FUNCTION_INFO_V1(sp_addextendedproperty);
+PG_FUNCTION_INFO_V1(sp_updateextendedproperty);
+PG_FUNCTION_INFO_V1(sp_dropextendedproperty);
 
 extern void delete_cached_batch(int handle);
 extern InlineCodeBlockArgs *create_args(int numargs);
@@ -3409,4 +3412,28 @@ remove_delimited_identifer(char *str)
 	len = strlen(str);
 	while (isspace(str[len - 1]))
 		str[--len] = 0;
+}
+
+Datum
+sp_addextendedproperty(PG_FUNCTION_ARGS)
+{
+	babelfish_exec_extendedproperty(fcinfo, "sp_addextendedproperty");
+
+	PG_RETURN_VOID();
+}
+
+Datum
+sp_updateextendedproperty(PG_FUNCTION_ARGS)
+{
+	babelfish_exec_extendedproperty(fcinfo, "sp_updateextendedproperty");
+
+	PG_RETURN_VOID();
+}
+
+Datum
+sp_dropextendedproperty(PG_FUNCTION_ARGS)
+{
+	babelfish_exec_extendedproperty(fcinfo, "sp_dropextendedproperty");
+
+	PG_RETURN_VOID();
 }
