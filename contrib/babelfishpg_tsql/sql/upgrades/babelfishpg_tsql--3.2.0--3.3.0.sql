@@ -53,11 +53,11 @@ CREATE TABLE sys.babelfish_extended_properties (
   minor_name name NOT NULL,
   type sys.varchar(50) NOT NULL,
   name sys.sysname NOT NULL,
+  orig_name sys.sysname NOT NULL,
   value sys.sql_variant,
-  PRIMARY KEY (dbid, schema_name, major_name, minor_name, type, name)
+  PRIMARY KEY (dbid, type, schema_name, major_name, minor_name, name)
 );
 GRANT SELECT ON sys.babelfish_extended_properties TO PUBLIC;
-GRANT ALL ON TABLE sys.babelfish_extended_properties TO sysadmin;
 
 CREATE OR REPLACE VIEW sys.extended_properties
 AS
@@ -86,8 +86,8 @@ SELECT
 		WHEN type = 'TYPE' THEN 0
 		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN (CASE WHEN type = 'TABLE COLUMN' THEN (SELECT attnum FROM pg_attribute WHERE attrelid = sys.object_id(schema_name || '.' || major_name) AND attname = minor_name COLLATE "C") ELSE 0 END)
 	END) AS int) AS minor_id,
-	name, value
-	FROM sys.babelfish_extended_properties WHERE dbid = sys.db_id() ORDER BY class, class_desc, major_id, minor_id, name;
+	orig_name AS name, value
+	FROM sys.babelfish_extended_properties WHERE dbid = sys.db_id() ORDER BY class, class_desc, major_id, minor_id, orig_name;
 GRANT SELECT ON sys.extended_properties TO PUBLIC;
 
 CALL sys.babelfish_drop_deprecated_object('table', 'sys', 'extended_properties_deprecated_in_3_3_0');
@@ -95,103 +95,20 @@ CALL sys.babelfish_drop_deprecated_object('table', 'sys', 'extended_properties_d
 ALTER FUNCTION sys.fn_listextendedproperty RENAME TO fn_listextendedproperty_deprecated_in_3_3_0;
 CREATE OR REPLACE FUNCTION sys.fn_listextendedproperty
 (
-    "@name" sys.sysname,
-    "@level0type" VARCHAR(128),
-    "@level0name" sys.sysname,
-    "@level1type" VARCHAR(128),
-    "@level1name" sys.sysname,
-    "@level2type" VARCHAR(128),
-    "@level2name" sys.sysname
+    IN "@name" sys.sysname DEFAULT NULL,
+    IN "@level0type" VARCHAR(128) DEFAULT NULL,
+    IN "@level0name" sys.sysname DEFAULT NULL,
+    IN "@level1type" VARCHAR(128) DEFAULT NULL,
+    IN "@level1name" sys.sysname DEFAULT NULL,
+    IN "@level2type" VARCHAR(128) DEFAULT NULL,
+    IN "@level2name" sys.sysname DEFAULT NULL,
+    OUT objtype sys.sysname,
+    OUT objname sys.sysname,
+    OUT name sys.sysname,
+    OUT value sys.sql_variant
 )
-RETURNS TABLE (
-    objtype sys.sysname,
-    objname sys.sysname,
-    name sys.sysname,
-    value sys.sql_variant
-)
-AS $$
-DECLARE
-    var_dbid SMALLINT;
-    var_schema_name NAME;
-    var_major_name NAME;
-    var_minor_name NAME;
-    var_type TEXT;
-    rec record;
-    objtype sys.sysname;
-    objname sys.sysname;
-BEGIN
-    "@level0type" := UPPER(RTRIM("@level0type"));
-    "@level1type" := UPPER(RTRIM("@level1type"));
-    "@level2type" := UPPER(RTRIM("@level2type"));
-    "@level0name" := LOWER(RTRIM("@level0name"));
-    "@level1name" := LOWER(RTRIM("@level1name"));
-    "@level2name" := LOWER(RTRIM("@level2name"));
-    "@name" := RTRIM("@name");
-
-    var_dbid := sys.db_id();
-    var_schema_name := '';
-    var_major_name := '';
-    var_minor_name := '';
-    var_type := '';
-
-    -- DATABASE
-    IF "@level0type" IS NULL THEN
-        var_type := 'DATABASE';
-    END IF;
-
-    -- SCHEMA or object in SCHEMA
-    IF "@level0type" IN ('SCHEMA') THEN
-        var_schema_name := "@level0name";
-
-        -- SCHEMA
-        IF "@level1type" IS NULL THEN
-            var_type := 'SCHEMA';
-            var_major_name := var_schema_name;
-
-        -- object in SCHEMA
-        ELSE
-            -- if has bigger level type, lower level name should not be NULL, or return empty row.
-            IF "@level0name" IS NULL THEN
-                RETURN;
-            END IF;
-
-            var_major_name := "@level1name";
-
-            IF "@level2type" IS NULL THEN
-                var_type := "@level1type";
-            ELSE
-                -- if has bigger level type, lower level name should not be NULL, or return empty row.
-                IF "@level1name" IS NULL THEN
-                    RETURN;
-                END IF;
-
-                var_type := "@level1type" || ' ' || "@level2type";
-                var_minor_name := "@level2name";
-            END IF;
-        END IF;
-    END IF;
-
-    FOR rec IN (SELECT * FROM sys.babelfish_extended_properties ep WHERE ep.dbid = var_dbid AND ep.schema_name = coalesce(var_schema_name, ep.schema_name) COLLATE "C" AND ep.major_name = coalesce(var_major_name, ep.major_name) COLLATE "C" AND ep.minor_name = coalesce(var_minor_name, ep.minor_name) COLLATE "C" AND ep.type = var_type COLLATE "C" AND ep.name = coalesce("@name", ep.name) ORDER BY dbid, schema_name, major_name, minor_name, type, name)
-    LOOP
-        IF rec.type = 'DATABASE' THEN
-            objtype := NULL;
-            objname := NULL;
-        ELSIF rec.type = 'SCHEMA' THEN
-            objtype := 'SCHEMA';
-            objname := rec.major_name;
-        ELSIF rec.type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION', 'TYPE') THEN
-            IF rec.type = 'TABLE COLUMN' THEN
-                objtype := 'COLUMN';
-                objname := rec.minor_name;
-            ELSE
-                objtype := rec.type;
-                objname := rec.major_name;
-            END IF;
-        END IF;
-        RETURN QUERY SELECT objtype, objname, rec.name AS name, rec.value as value;
-    END LOOP;
-END;
-$$ LANGUAGE plpgsql STABLE;
+RETURNS SETOF RECORD
+AS 'babelfishpg_tsql' LANGUAGE C STABLE;
 GRANT EXECUTE ON FUNCTION sys.fn_listextendedproperty TO PUBLIC;
 
 CALL sys.babelfish_drop_deprecated_object('function', 'sys', 'fn_listextendedproperty_deprecated_in_3_3_0');
