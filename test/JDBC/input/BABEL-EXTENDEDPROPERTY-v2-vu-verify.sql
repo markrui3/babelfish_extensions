@@ -26,7 +26,7 @@ GO
 EXEC babel_sp_dropextendedproperty 'wrong param'
 GO
 
-EXEC babel_babelfish_exec_extendedproperty 'sp_dropextendedproperty', 'wrong param', NULL
+EXEC babel_sp_dropextendedproperty 'wrong param', NULL
 GO
 
 EXEC babel_sp_dropextendedproperty 'already existing property'
@@ -610,7 +610,7 @@ GO
 EXEC babel_sp_addextendedproperty 'type property1', 'type property1 before', 'schema', 'babel_extended_properties_schema1', 'type', 'babel_extended_properties_type2'
 GO
 
-EXEC babel_sp_addextendedproperty 'type property2', 'type property2 before', 'schema', 'babel_extended_properties_schema1', 'type', 'babel_extended_properties_type2'
+EXEC babel_sp_addextendedproperty 'type property2', 12345678, 'schema', 'babel_extended_properties_schema1', 'type', 'babel_extended_properties_type2'
 GO
 
 EXEC babel_fn_listextendedproperty NULL, 'schema', NULL, 'type', NULL, NULL, NULL
@@ -637,7 +637,7 @@ GO
 EXEC babel_sp_updateextendedproperty 'type property1', 'type property1 after', 'schema', 'babel_extended_properties_schema1', 'type', 'babel_extended_properties_type1'
 GO
 
-EXEC babel_sp_updateextendedproperty 'type property2', 'type property2 after', 'schema', 'babel_extended_properties_schema1', 'type', 'babel_extended_properties_type2'
+EXEC babel_sp_updateextendedproperty 'type property2', 87654321, 'schema', 'babel_extended_properties_schema1', 'type', 'babel_extended_properties_type2'
 GO
 
 EXEC babel_fn_listextendedproperty NULL, 'schema', 'babel_extended_properties_schema1', 'type', NULL, NULL, NULL

@@ -3250,6 +3250,6 @@ SELECT
 		WHEN type = 'TYPE' THEN 0
 		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN (CASE WHEN type = 'TABLE COLUMN' THEN (SELECT attnum FROM pg_attribute WHERE attrelid = sys.object_id(schema_name || '.' || major_name) AND attname = minor_name COLLATE "C") ELSE 0 END)
 	END) AS int) AS minor_id,
-	name, value
-	FROM sys.babelfish_extended_properties WHERE dbid = sys.db_id() ORDER BY class, class_desc, major_id, minor_id, name;
+	orig_name AS name, value
+	FROM sys.babelfish_extended_properties WHERE dbid = sys.db_id() ORDER BY class, class_desc, major_id, minor_id, orig_name;
 GRANT SELECT ON sys.extended_properties TO PUBLIC;

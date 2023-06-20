@@ -5,22 +5,6 @@ GO
 USE babel_extended_properties_db
 GO
 
-CREATE PROCEDURE babel_babelfish_exec_extendedproperty
-    @procedure_name text,
-    @name sys.sysname,
-    @value sys.sql_variant = NULL,
-    @level0type VARCHAR(128) = NULL,
-    @level0name sys.sysname = NULL,
-    @level1type VARCHAR(128) = NULL,
-    @level1name sys.sysname = NULL,
-    @level2type VARCHAR(128) = NULL,
-    @level2name sys.sysname = NULL
-AS
-BEGIN
-    EXEC babelfish_exec_extendedproperty @procedure_name, @name, @value, @level0type, @level0name, @level1type, @level1name, @level2type, @level2name
-END
-GO
-
 CREATE PROCEDURE babel_sp_addextendedproperty
     @name sys.sysname,
     @value sys.sql_variant = NULL,
@@ -88,5 +72,5 @@ SELECT class, class_desc, IIF(major_id > 0, 1, 0) AS major_id, minor_id, name, v
 GO
 
 CREATE PROCEDURE babel_babelfish_extended_properties_proc AS
-SELECT IIF(dbid = db_id(), 1, 0) AS dbid, schema_name, major_name, minor_name, type, name, value FROM sys.babelfish_extended_properties ORDER BY dbid, schema_name, major_name, minor_name, type, name
+SELECT IIF(dbid = db_id(), 1, 0) AS dbid, schema_name, major_name, minor_name, type, name, orig_name, value FROM sys.babelfish_extended_properties ORDER BY dbid, type, schema_name, major_name, minor_name, name
 GO

@@ -3559,3 +3559,21 @@ CREATE OR REPLACE FUNCTION sys.EOMONTH(date,int DEFAULT 0)
 RETURNS date
 AS 'babelfishpg_tsql', 'EOMONTH'
 LANGUAGE C STABLE PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION sys.fn_listextendedproperty
+(
+    IN "@name" sys.sysname DEFAULT NULL,
+    IN "@level0type" VARCHAR(128) DEFAULT NULL,
+    IN "@level0name" sys.sysname DEFAULT NULL,
+    IN "@level1type" VARCHAR(128) DEFAULT NULL,
+    IN "@level1name" sys.sysname DEFAULT NULL,
+    IN "@level2type" VARCHAR(128) DEFAULT NULL,
+    IN "@level2name" sys.sysname DEFAULT NULL,
+    OUT objtype sys.sysname,
+    OUT objname sys.sysname,
+    OUT name sys.sysname,
+    OUT value sys.sql_variant
+)
+RETURNS SETOF RECORD
+AS 'babelfishpg_tsql' LANGUAGE C STABLE;
+GRANT EXECUTE ON FUNCTION sys.fn_listextendedproperty TO PUBLIC;

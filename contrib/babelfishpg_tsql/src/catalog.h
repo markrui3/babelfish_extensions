@@ -304,14 +304,29 @@ extern Oid	get_bbf_domain_mapping_idx_oid(void);
 #define Anum_bbf_extended_properties_minor_name 4
 #define Anum_bbf_extended_properties_type 5
 #define Anum_bbf_extended_properties_name 6
-#define Anum_bbf_extended_properties_value 7
-#define BBF_EXTENDED_PROPERTIES_NUM_COLS 7
+#define Anum_bbf_extended_properties_orig_name 7
+#define Anum_bbf_extended_properties_value 8
+#define BBF_EXTENDED_PROPERTIES_NUM_COLS 8
 
 extern Oid	bbf_extended_properties_oid;
 extern Oid	bbf_extended_properties_idx_oid;
 
 extern Oid	get_bbf_extended_properties_oid(void);
 extern Oid	get_bbf_extended_properties_idx_oid(void);
+
+typedef struct FormData_bbf_extended_properties
+{
+	int16		dbid;
+	NameData	schema_name;
+	NameData	major_name;
+	NameData	minor_name;
+	VarChar		type;
+	VarChar		name;
+	VarChar		orig_name;
+	bytea		value;
+} FormData_bbf_extended_properties;
+
+typedef FormData_bbf_extended_properties *Form_bbf_extended_properties;
 
 /*****************************************
  *			Metadata Check Rule

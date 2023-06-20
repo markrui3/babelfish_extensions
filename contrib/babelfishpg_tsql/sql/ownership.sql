@@ -201,8 +201,6 @@ BEGIN
 
   -- let sysadmin only to update babelfish_domain_mapping
   GRANT ALL ON TABLE sys.babelfish_domain_mapping TO sysadmin;
-
-  GRANT ALL ON TABLE sys.babelfish_extended_properties TO sysadmin;
 END
 $$;
 
@@ -622,7 +620,8 @@ CREATE TABLE sys.babelfish_extended_properties (
   minor_name name NOT NULL,
   type sys.varchar(50) NOT NULL,
   name sys.sysname NOT NULL,
+  orig_name sys.sysname NOT NULL,
   value sys.sql_variant,
-  PRIMARY KEY (dbid, schema_name, major_name, minor_name, type, name)
+  PRIMARY KEY (dbid, type, schema_name, major_name, minor_name, name)
 );
 GRANT SELECT ON sys.babelfish_extended_properties TO PUBLIC;

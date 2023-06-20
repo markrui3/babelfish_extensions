@@ -73,9 +73,6 @@ PG_FUNCTION_INFO_V1(sp_dropserver_internal);
 PG_FUNCTION_INFO_V1(sp_serveroption_internal);
 PG_FUNCTION_INFO_V1(sp_babelfish_volatility);
 PG_FUNCTION_INFO_V1(sp_rename_internal);
-PG_FUNCTION_INFO_V1(sp_addextendedproperty);
-PG_FUNCTION_INFO_V1(sp_updateextendedproperty);
-PG_FUNCTION_INFO_V1(sp_dropextendedproperty);
 
 extern void delete_cached_batch(int handle);
 extern InlineCodeBlockArgs *create_args(int numargs);
@@ -3208,7 +3205,7 @@ rename_extended_property(ObjectType objtype, const char *schema_name,
 						 const char *major_name,
 						 const char *old_name, const char *new_name)
 {
-	int db_id = get_cur_db_id();
+	int		db_id = get_cur_db_id();
 
 	if (objtype == OBJECT_TABLE ||
 		objtype == OBJECT_VIEW ||
@@ -3218,7 +3215,7 @@ rename_extended_property(ObjectType objtype, const char *schema_name,
 		objtype == OBJECT_TYPE)
 	{
 		/*
-		 * Use old_name as major_name in this routinue.
+		 * Use old_name as major_name in this routine.
 		 * (refer to gen_sp_rename_subcmds)
 		 */
 		if (schema_name && old_name)
@@ -3226,10 +3223,52 @@ rename_extended_property(ObjectType objtype, const char *schema_name,
 			char *lower_schema_name = lowerstr(schema_name);
 			char *lower_major_name = lowerstr(old_name);
 
-			update_extended_property(3, db_id, lower_schema_name,
-									 lower_major_name, NULL, NULL,
-									 Anum_bbf_extended_properties_major_name,
-									 new_name);
+			if (objtype == OBJECT_TABLE)
+			{
+				update_extended_property(db_id, "TABLE", lower_schema_name,
+										 lower_major_name, NULL,
+										 Anum_bbf_extended_properties_major_name,
+										 new_name);
+				update_extended_property(db_id, "TABLE COLUMN", lower_schema_name,
+										 lower_major_name, NULL,
+										 Anum_bbf_extended_properties_major_name,
+										 new_name);
+			}
+			else if (objtype == OBJECT_VIEW)
+			{
+				update_extended_property(db_id, "VIEW", lower_schema_name,
+										 lower_major_name, NULL,
+										 Anum_bbf_extended_properties_major_name,
+										 new_name);
+			}
+			else if (objtype == OBJECT_SEQUENCE)
+			{
+				update_extended_property(db_id, "SEQUENCE", lower_schema_name,
+										 lower_major_name, NULL,
+										 Anum_bbf_extended_properties_major_name,
+										 new_name);
+			}
+			else if (objtype == OBJECT_PROCEDURE)
+			{
+				update_extended_property(db_id, "PROCEDURE", lower_schema_name,
+										 lower_major_name, NULL,
+										 Anum_bbf_extended_properties_major_name,
+										 new_name);
+			}
+			else if (objtype == OBJECT_FUNCTION)
+			{
+				update_extended_property(db_id, "FUNCTION", lower_schema_name,
+										 lower_major_name, NULL,
+										 Anum_bbf_extended_properties_major_name,
+										 new_name);
+			}
+			else if (objtype == OBJECT_TYPE)
+			{
+				update_extended_property(db_id, "TYPE", lower_schema_name,
+										 lower_major_name, NULL,
+										 Anum_bbf_extended_properties_major_name,
+										 new_name);
+			}
 
 			pfree(lower_schema_name);
 			pfree(lower_major_name);
@@ -3243,9 +3282,8 @@ rename_extended_property(ObjectType objtype, const char *schema_name,
 			char *lower_major_name = lowerstr(major_name);
 			char *lower_minor_name = lowerstr(old_name);
 
-			update_extended_property(5, db_id, lower_schema_name,
+			update_extended_property(db_id, "TABLE COLUMN", lower_schema_name,
 									 lower_major_name, lower_minor_name,
-									 "TABLE COLUMN",
 									 Anum_bbf_extended_properties_minor_name,
 									 new_name);
 
@@ -3412,28 +3450,4 @@ remove_delimited_identifer(char *str)
 	len = strlen(str);
 	while (isspace(str[len - 1]))
 		str[--len] = 0;
-}
-
-Datum
-sp_addextendedproperty(PG_FUNCTION_ARGS)
-{
-	babelfish_exec_extendedproperty(fcinfo, "sp_addextendedproperty");
-
-	PG_RETURN_VOID();
-}
-
-Datum
-sp_updateextendedproperty(PG_FUNCTION_ARGS)
-{
-	babelfish_exec_extendedproperty(fcinfo, "sp_updateextendedproperty");
-
-	PG_RETURN_VOID();
-}
-
-Datum
-sp_dropextendedproperty(PG_FUNCTION_ARGS)
-{
-	babelfish_exec_extendedproperty(fcinfo, "sp_dropextendedproperty");
-
-	PG_RETURN_VOID();
 }

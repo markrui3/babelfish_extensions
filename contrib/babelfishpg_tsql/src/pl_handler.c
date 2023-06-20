@@ -5065,7 +5065,8 @@ static void
 bbf_ExecDropStmt(DropStmt *stmt)
 {
 	int16			db_id;
-	char			*physical_schema_name = NULL,
+	char			*type = NULL,
+					*physical_schema_name = NULL,
 					*schema_name = NULL,
 					*major_name = NULL;
 	const char		*logical_schema_name = NULL;
@@ -5094,7 +5095,8 @@ bbf_ExecDropStmt(DropStmt *stmt)
 
 			if (schema_name)
 			{
-				delete_extended_property(2, db_id, schema_name, NULL, NULL, NULL);
+				delete_extended_property(db_id, "SCHEMA", schema_name, NULL,
+										 NULL);
 				pfree(schema_name);
 			}
 		}
@@ -5142,8 +5144,23 @@ bbf_ExecDropStmt(DropStmt *stmt)
 
 			if (schema_name && major_name)
 			{
-				delete_extended_property(3, db_id, schema_name, major_name,
-										 NULL, NULL);
+				if (stmt->removeType == OBJECT_TABLE)
+				{
+					delete_extended_property(db_id, "TABLE", schema_name,
+											 major_name, NULL);
+					delete_extended_property(db_id, "TABLE COLUMN", schema_name,
+											 major_name, NULL);
+				}
+				else if (stmt->removeType == OBJECT_VIEW)
+				{
+					delete_extended_property(db_id, "VIEW", schema_name,
+											 major_name, NULL);
+				}
+				else if (stmt->removeType == OBJECT_SEQUENCE)
+				{
+					delete_extended_property(db_id, "SEQUENCE", schema_name,
+											 major_name, NULL);
+				}
 			}
 
 			if (schema_name)
@@ -5212,8 +5229,15 @@ bbf_ExecDropStmt(DropStmt *stmt)
 
 			if (schema_name && major_name)
 			{
-				delete_extended_property(3, db_id, schema_name, major_name,
-										 NULL, NULL);
+				if (stmt->removeType == OBJECT_PROCEDURE)
+					type = "PROCEDURE";
+				else if (stmt->removeType == OBJECT_FUNCTION)
+					type = "FUNCTION";
+				else if (stmt->removeType == OBJECT_TYPE)
+					type = "TYPE";
+
+				delete_extended_property(db_id, type, schema_name, major_name,
+										 NULL);
 			}
 
 			if (schema_name)

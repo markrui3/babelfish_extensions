@@ -309,9 +309,8 @@ pltsql_PreDropColumnHook(Relation rel, AttrNumber attnum)
 
 	if (schema_name && minor_name)
 	{
-		delete_extended_property(5, get_cur_db_id(), schema_name,
-								 RelationGetRelationName(rel), minor_name,
-								 "TABLE COLUMN");
+		delete_extended_property(get_cur_db_id(), "TABLE COLUMN", schema_name,
+								 RelationGetRelationName(rel), minor_name);
 	}
 
 	if (schema_name)

@@ -719,7 +719,7 @@ drop_bbf_db(const char *dbname, bool missing_ok, bool force_drop)
 		/* clean up corresponding db users */
 		drop_related_bbf_users(db_users_list);
 		/* delete extended property */
-		delete_extended_property(1, dbid, NULL, NULL, NULL, NULL);
+		delete_extended_property(dbid, NULL, NULL, NULL, NULL);
 
 		/* Release the session-level exclusive lock */
 		UnlockLogicalDatabaseForSession(dbid, ExclusiveLock, true);
