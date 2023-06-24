@@ -3222,34 +3222,3 @@ BEGIN
 END;
 $$
 LANGUAGE pltsql STABLE;
-
-CREATE OR REPLACE VIEW sys.extended_properties
-AS
-SELECT
-	CAST((CASE
-		WHEN type = 'DATABASE' THEN 0
-		WHEN type = 'SCHEMA' THEN 3
-		WHEN type = 'TYPE' THEN 6
-		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN 1
-		END) AS sys.tinyint) AS class,
-	CAST((CASE
-		WHEN type = 'DATABASE' THEN 'DATABASE'
-		WHEN type = 'SCHEMA' THEN 'SCHEMA'
-		WHEN type = 'TYPE' THEN 'TYPE'
-		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN 'OBJECT_OR_COLUMN'
-	END) AS sys.nvarchar(60)) AS class_desc,
-	CAST((CASE
-		WHEN type = 'DATABASE' THEN 0
-		WHEN type = 'SCHEMA' THEN sys.schema_id(schema_name::sys.sysname)
-		WHEN type = 'TYPE' THEN sys.object_id(schema_name || '.' || major_name)
-		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN sys.object_id(schema_name || '.' || major_name)
-	END) AS int) AS major_id,
-	CAST((CASE
-		WHEN type = 'DATABASE' THEN 0
-		WHEN type = 'SCHEMA' THEN 0
-		WHEN type = 'TYPE' THEN 0
-		WHEN type IN ('TABLE', 'TABLE COLUMN', 'VIEW', 'SEQUENCE', 'PROCEDURE', 'FUNCTION') THEN (CASE WHEN type = 'TABLE COLUMN' THEN (SELECT attnum FROM pg_attribute WHERE attrelid = sys.object_id(schema_name || '.' || major_name) AND attname = minor_name COLLATE "C") ELSE 0 END)
-	END) AS int) AS minor_id,
-	orig_name AS name, value
-	FROM sys.babelfish_extended_properties WHERE dbid = sys.db_id() ORDER BY class, class_desc, major_id, minor_id, orig_name;
-GRANT SELECT ON sys.extended_properties TO PUBLIC;

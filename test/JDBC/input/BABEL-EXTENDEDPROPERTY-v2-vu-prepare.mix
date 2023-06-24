@@ -1,8 +1,20 @@
--- use a new db
+-- tsql
 CREATE DATABASE babel_extended_properties_db
 GO
 
 USE babel_extended_properties_db
+GO
+
+CREATE LOGIN owner WITH PASSWORD = '12345678'
+GO
+
+ALTER ROLE sysadmin ADD MEMBER owner
+GO
+
+CREATE LOGIN normal_user WITH PASSWORD = '12345678'
+GO
+
+CREATE USER normal_user FOR LOGIN normal_user
 GO
 
 CREATE PROCEDURE babel_sp_addextendedproperty

@@ -1,3 +1,4 @@
+-- tsql user=owner password=12345678
 USE babel_extended_properties_db
 GO
 
@@ -3154,22 +3155,123 @@ int#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
 ~~END~~
 
 
-USE master
+-- tsql user=normal_user password=12345678
+USE babel_extended_properties_db
 GO
 
-DROP DATABASE babel_extended_properties_db
+-- normal_user should fail to execute sp_xxxxextendedproperty
+sp_addextendedproperty 'database property3', 'database property3 before'
 GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: Cannot find the object "object specified" because it does not exist or you do not have permissions.)~~
+
+
+sp_updateextendedproperty 'schema property3', 'schema property3 before', 'schema', 'babel_extended_properties_schema1'
+GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: Cannot find the object "babel_extended_properties_schema1" because it does not exist or you do not have permissions.)~~
+
+
+sp_dropextendedproperty 'table property3', 'schema', 'babel_extended_properties_schema1', 'table', 'babel_extended_properties_table1'
+GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: Cannot find the object "babel_extended_properties_schema1.babel_extended_properties_table1" because it does not exist or you do not have permissions.)~~
+
+
+sp_addextendedproperty 'column property3', 'column property3 before', 'schema', 'babel_extended_properties_schema1', 'table', 'babel_extended_properties_table1', 'column', 'id'
+GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: Cannot find the object "babel_extended_properties_schema1.babel_extended_properties_table1" because it does not exist or you do not have permissions.)~~
+
+
+sp_updateextendedproperty 'view property3', 'view property3 before', 'schema', 'babel_extended_properties_schema1', 'view', 'babel_extended_properties_view1'
+GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: Cannot find the object "babel_extended_properties_schema1.babel_extended_properties_view1" because it does not exist or you do not have permissions.)~~
+
+
+sp_dropextendedproperty 'sequence property3', 'schema', 'babel_extended_properties_schema1', 'sequence', 'babel_extended_properties_seq1'
+GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: Cannot find the object "babel_extended_properties_schema1.babel_extended_properties_seq1" because it does not exist or you do not have permissions.)~~
+
+
+sp_addextendedproperty 'procedure property3', 'procedure property3 before', 'schema', 'babel_extended_properties_schema1', 'procedure', 'babel_extended_properties_proc1'
+GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: Cannot find the object "babel_extended_properties_schema1.babel_extended_properties_proc1" because it does not exist or you do not have permissions.)~~
+
+
+sp_updateextendedproperty 'function property3', 'function property3 before', 'schema', 'babel_extended_properties_schema1', 'function', 'babel_extended_properties_func1'
+GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: Cannot find the object "babel_extended_properties_schema1.babel_extended_properties_func1" because it does not exist or you do not have permissions.)~~
+
+
+sp_dropextendedproperty 'type property3', 'schema', 'babel_extended_properties_schema1', 'type', 'babel_extended_properties_type1'
+GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: Cannot find the object "babel_extended_properties_schema1.babel_extended_properties_type1" because it does not exist or you do not have permissions.)~~
+
+
+-- normal_user can't get result from fn_listextendedproperty and sys.extended_properties before being granted
+SELECT * FROM fn_listextendedproperty(NULL, 'schema', 'babel_extended_properties_schema1', 'table', NULL, NULL, NULL)
+GO
+~~START~~
+varchar#!#varchar#!#varchar#!#sql_variant
+~~END~~
+
 
 SELECT class, class_desc, IIF(major_id > 0, 1, 0) AS major_id, minor_id, name, value FROM sys.extended_properties
 GO
 ~~START~~
 tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
+0#!#DATABASE#!#0#!#0#!#database property1#!#database property1 after
+3#!#SCHEMA#!#1#!#0#!#schema property1#!#schema property1 after
+3#!#SCHEMA#!#1#!#0#!#schema property2#!#schema property2 before
 ~~END~~
 
 
-SELECT dbid, schema_name, major_name, minor_name, type, name, value FROM sys.babelfish_extended_properties ORDER BY dbid, schema_name, major_name, minor_name, type, name;
+-- tsql user=owner password=12345678
+USE babel_extended_properties_db
+GO
+
+GRANT SELECT ON babel_extended_properties_schema1.babel_extended_properties_table1 TO normal_user
+GO
+
+-- tsql user=normal_user password=12345678
+-- normal_user can get result from fn_listextendedproperty and sys.extended_properties after being granted
+USE babel_extended_properties_db
+GO
+
+SELECT * FROM fn_listextendedproperty(NULL, 'schema', 'babel_extended_properties_schema1', 'table', NULL, NULL, NULL)
 GO
 ~~START~~
-smallint#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
+varchar#!#varchar#!#varchar#!#sql_variant
+TABLE#!#babel_extended_properties_table1#!#table property1#!#table property1 after
+TABLE#!#babel_extended_properties_table1#!#table property2#!#table property2 before
+~~END~~
+
+
+SELECT class, class_desc, IIF(major_id > 0, 1, 0) AS major_id, minor_id, name, value FROM sys.extended_properties
+GO
+~~START~~
+tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
+0#!#DATABASE#!#0#!#0#!#database property1#!#database property1 after
+1#!#OBJECT_OR_COLUMN#!#1#!#0#!#table property1#!#table property1 after
+1#!#OBJECT_OR_COLUMN#!#1#!#0#!#table property2#!#table property2 before
+1#!#OBJECT_OR_COLUMN#!#1#!#1#!#column property1#!#column property1 after
+1#!#OBJECT_OR_COLUMN#!#1#!#2#!#column property2#!#column property2 before
+3#!#SCHEMA#!#1#!#0#!#schema property1#!#schema property1 after
+3#!#SCHEMA#!#1#!#0#!#schema property2#!#schema property2 before
 ~~END~~
 

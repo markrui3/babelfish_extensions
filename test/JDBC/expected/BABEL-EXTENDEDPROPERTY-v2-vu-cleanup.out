@@ -1,0 +1,44 @@
+-- tsql
+USE babel_extended_properties_db
+GO
+
+SELECT USER_NAME()
+GO
+~~START~~
+nvarchar
+dbo
+~~END~~
+
+
+DROP USER normal_user
+GO
+~~ERROR (Code: 33557097)~~
+
+~~ERROR (Message: role "babel_extended_properties_db_normal_user" cannot be dropped because some objects depend on it)~~
+
+
+DROP LOGIN normal_user
+GO
+
+USE master
+GO
+
+DROP DATABASE babel_extended_properties_db
+GO
+
+DROP LOGIN owner
+GO
+
+SELECT class, class_desc, IIF(major_id > 0, 1, 0) AS major_id, minor_id, name, value FROM sys.extended_properties
+GO
+~~START~~
+tinyint#!#nvarchar#!#int#!#int#!#varchar#!#sql_variant
+~~END~~
+
+
+SELECT dbid, schema_name, major_name, minor_name, type, name, orig_name, value FROM sys.babelfish_extended_properties ORDER BY dbid, type, schema_name, major_name, minor_name, name
+GO
+~~START~~
+smallint#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#varchar#!#sql_variant
+~~END~~
+

@@ -39,7 +39,8 @@ PG_FUNCTION_INFO_V1(sp_dropextendedproperty);
 PG_FUNCTION_INFO_V1(fn_listextendedproperty);
 
 static void sp_execextended_property(PG_FUNCTION_ARGS, const char *procedure_name);
-static bool get_extended_property_from_tuple(Relation relation, HeapTuple tuple, Datum *values, bool *nulls, int len);
+static bool get_extended_property_from_tuple(Relation relation, HeapTuple tuple,
+											 Datum *values, bool *nulls, int len);
 
 void
 delete_extended_property(int16 db_id,
@@ -267,7 +268,7 @@ sp_execextended_property(PG_FUNCTION_ARGS, const char *procedure_name)
 	}
 
 	db_owner = get_role_oid(get_db_owner_name(get_cur_db_name()), false);
-	cur_user_id = GetSessionUserId();
+	cur_user_id = GetUserId();
 	if (is_member_of_role(cur_user_id, db_owner))
 	{
 		has_all_permissions = true;
@@ -943,7 +944,8 @@ end:
  * check privilege of table column, skip privilege of schema or table.
  */
 static bool
-get_extended_property_from_tuple(Relation relation, HeapTuple tuple, Datum *values, bool *nulls, int len)
+get_extended_property_from_tuple(Relation relation, HeapTuple tuple,
+								 Datum *values, bool *nulls, int len)
 {
 	Form_bbf_extended_properties bep;
 	char		*schema_name, *major_name, *minor_name, *type;
@@ -959,7 +961,7 @@ get_extended_property_from_tuple(Relation relation, HeapTuple tuple, Datum *valu
 	minor_name = "";
 
 	/* check if have read-only permission */
-	cur_user_id = GetSessionUserId();
+	cur_user_id = GetUserId();
 
 
 	bep = (Form_bbf_extended_properties) GETSTRUCT(tuple);
@@ -989,7 +991,7 @@ get_extended_property_from_tuple(Relation relation, HeapTuple tuple, Datum *valu
 		ReleaseSysCache(heaptuple);
 
 		if (strcmp(type, "SCHEMA") == 0 &&
-			pg_namespace_aclcheck(schema_id, cur_user_id, ACL_USAGE) !=
+			pg_namespace_aclcheck(schema_id, cur_user_id, ACL_USAGE | ACL_CREATE) !=
 			ACLCHECK_OK)
 				return false;
 
@@ -1016,9 +1018,8 @@ get_extended_property_from_tuple(Relation relation, HeapTuple tuple, Datum *valu
 					strcmp(type, "VIEW") == 0 ||
 					strcmp(type, "SEQUENCE") == 0)
 				{
-					if (pg_class_aclcheck(reloid, cur_user_id, ACL_SELECT) !=
-						ACLCHECK_OK)
-					return false;
+					if (pg_class_aclcheck(reloid, cur_user_id, ACL_SELECT | ACL_INSERT | ACL_UPDATE | ACL_DELETE | ACL_REFERENCES | ACL_TRIGGER) != ACLCHECK_OK)
+						return false;
 				}
 			}
 			else if (strncmp(type, "PROCEDURE", 9) == 0 ||
@@ -1047,8 +1048,7 @@ get_extended_property_from_tuple(Relation relation, HeapTuple tuple, Datum *valu
 					strcmp(type, "FUNCTION") == 0)
 				{
 					if (!find ||
-						pg_proc_aclcheck(procoid, cur_user_id, ACL_EXECUTE) !=
-						ACLCHECK_OK)
+						pg_proc_aclcheck(procoid, cur_user_id, ACL_EXECUTE) != ACLCHECK_OK)
 						return false;
 				}
 			}
@@ -1068,8 +1068,7 @@ get_extended_property_from_tuple(Relation relation, HeapTuple tuple, Datum *valu
 
 				if (strcmp(type, "TYPE") == 0)
 				{
-					if (pg_type_aclcheck(typeoid, cur_user_id, ACL_USAGE) !=
-						ACLCHECK_OK)
+					if (pg_type_aclcheck(typeoid, cur_user_id, ACL_USAGE) != ACLCHECK_OK)
 						return false;
 				}
 			}
@@ -1089,10 +1088,8 @@ get_extended_property_from_tuple(Relation relation, HeapTuple tuple, Datum *valu
 					attnum = attform->attnum;
 					ReleaseSysCache(heaptuple);
 
-					if (pg_class_aclcheck(reloid, cur_user_id, ACL_SELECT) !=
-						ACLCHECK_OK &&
-						pg_attribute_aclcheck(reloid, attnum, cur_user_id,
-											  ACL_SELECT) != ACLCHECK_OK)
+					if (pg_class_aclcheck(reloid, cur_user_id, ACL_SELECT | ACL_INSERT | ACL_UPDATE | ACL_DELETE | ACL_REFERENCES | ACL_TRIGGER) != ACLCHECK_OK &&
+						pg_attribute_aclcheck(reloid, attnum, cur_user_id, ACL_SELECT | ACL_INSERT | ACL_UPDATE | ACL_REFERENCES) != ACLCHECK_OK)
 						return false;
 				}
 			}
